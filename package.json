@@ -5,22 +5,36 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "wrangler dev",
-    "check": "wrangler types && tsc",
+    "dev": "npm run build && wrangler dev --port 8791 --var PI_TCP_TOKEN:dev-token",
+    "check": "wrangler types && tsc && tsc -p client/tsconfig.json && oxlint .",
     "deploy": "wrangler deploy",
-    "postinstall": "wrangler types"
+    "build": "vite build --config client/vite.config.ts",
+    "dev:client": "vite --config client/vite.config.ts",
+    "lint": "oxlint .",
+    "proof": "node scripts/proof.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@cloudflare/oxlint-config": "^0.1.0",
+    "@foldkit/vite-plugin": "^0.29.1",
+    "@tailwindcss/vite": "^4.3.5",
+    "oxlint": "^1.94.0",
+    "tailwindcss": "^4.3.5",
+    "tsrs": "^0.25.0-ts7.1.0-beta",
     "typescript": "^7.0.2",
+    "vite": "^8.3.8",
     "wrangler": "^4.166.0"
   },
   "dependencies": {
     "@earendil-works/chord": "^1.6.0",
     "@earendil-works/pi-ai": "^1.6.0",
-    "@earendil-works/pi-durable": "^1.6.0"
+    "@earendil-works/pi-durable": "^1.6.0",
+    "@effect/platform-browser": "^4.1.5",
+    "effect": "^4.1.5",
+    "foldkit": "^0.171.0"
   },
-  "private": true
+  "private": true,
+  "type": "module"
 }

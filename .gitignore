@@ -2,5 +2,6 @@ node_modules
 .dev.vars
 .wrangler
 .cloudflare
-worker-configuration.d.ts
 .guardrail
+worker-configuration.d.ts
+public

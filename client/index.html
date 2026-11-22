@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>pi-tcp · one durable Pi session, two transports</title>
+		<meta name="description" content="A Pi Durable session in a Cloudflare Durable Object, driven over raw TCP with Workers connect() and from the browser over WebSocket." />
+		<link rel="stylesheet" href="/src/styles.css" />
+	</head>
+	<body>
+		<div id="root"></div>
+		<noscript>pi-tcp needs JavaScript for the live chat. The raw TCP side works without it: see the README.</noscript>
+		<script type="module" src="/src/entry.ts"></script>
+	</body>
+</html>

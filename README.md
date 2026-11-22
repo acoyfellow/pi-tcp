@@ -1,74 +1,96 @@
 # pi-tcp
 
-Talk to a durable Pi agent over raw TCP. No container, no HTTP, no WebSocket.
+One durable Pi session with two doors: raw TCP and a web page.
 
 ```
-nc / any TCP client ──▶ Spectrum ──▶ Worker connect() ──▶ PiSession Durable Object
-                                      token + session        Pi Durable harness in SQLite
+nc ─────────▶ Worker connect() ─┐
+                                ├─▶ PiSession Durable Object ─▶ Pi Durable harness (SQLite)
+browser ─ws─▶ Worker fetch() ───┘         fans each new entry out to every peer
 ```
 
-Each session name is one Durable Object. The conversation lives in its SQLite storage, so you can drop the connection, reconnect from anywhere, and keep going.
+Ask from `nc` and the turn shows up in the browser, tagged `nc`. Ask from the browser and `nc` prints it. Drop either side, reconnect, send `replay`, and you get the turns you missed.
 
-Built on [inbound TCP for Workers](https://developers.cloudflare.com/changelog/post/2026-11-19-inbound-tcp/) (public beta) and [`@earendil-works/pi-durable`](https://www.npmjs.com/package/@earendil-works/pi-durable).
+This is a **local proof** of [inbound TCP for Workers](https://developers.cloudflare.com/changelog/post/2026-11-19-inbound-tcp/) (public beta) and [`@earendil-works/pi-durable`](https://www.npmjs.com/package/@earendil-works/pi-durable). It is not a product. It has one shared token, no TLS and no accounts.
 
-## Protocol
+## Status
 
-Newline-delimited JSON, close to Pi's RPC mode.
+[`status.json`](status.json) holds the claim and its last result:
 
-1. Send your token on the first line.
-2. Send a session name (`[a-z0-9-]{1,63}`) on the second line.
-3. Then send commands, one JSON object per line.
+> One Pi Durable session takes turns from raw TCP and from a browser at the same time; each side sees the other's turns; a reconnect on either side loses no turns.
 
-| Command | Reply |
-|---|---|
-| `{"id":"1","type":"prompt","message":"..."}` | a `response`, then one `entry` per new entry, then `agent_settled` |
-| `{"id":"2","type":"get_messages"}` | every entry in the session |
-| `{"id":"3","type":"replay","after":15}` | entries after id 15, for resuming after a reconnect |
-| `{"id":"4","type":"abort"}` | stops the current turn |
+**Proven locally** (`wrangler dev`). **Not proven** over the public internet, because that needs Spectrum on a paid zone. Refer to [`receipts/findings.md`](receipts/findings.md).
 
-A bad token gets `{"type":"refused","reason":"bad token"}`, and the connection closes.
-
-## Run it locally
+## Run it
 
 ```sh
 npm install
-npx wrangler dev --var PI_TCP_TOKEN:dev-token
-PI_TCP_TOKEN=dev-token node client/pi-tcp.mjs 127.0.0.1:7000 demo
+npm run dev
 ```
 
-Or use `nc`:
+Open http://localhost:8791/?token=dev-token&session=demo. Then, in a second terminal:
 
 ```sh
-(printf 'dev-token\ndemo\n{"id":"1","type":"prompt","message":"hi"}\n'; sleep 20) | nc 127.0.0.1 7000
+PI_TCP_TOKEN=dev-token node bin/pi-tcp.mjs 127.0.0.1:7000 demo
 ```
 
-The `AI` binding always calls Workers AI remotely, even in local dev, so prompts cost a little.
-
-## Deploy
+Or use plain `nc`:
 
 ```sh
-npx wrangler deploy
-openssl rand -hex 24 | npx wrangler secret put PI_TCP_TOKEN
+(printf 'dev-token\ndemo\n{"type":"prompt","message":"hi from nc"}\n'; sleep 20) | nc 127.0.0.1 7000
 ```
 
-Then create a Spectrum application that sends one TCP port to this Worker. Refer to [Route TCP traffic to a Worker](https://developers.cloudflare.com/spectrum/how-to/route-tcp-traffic-to-a-worker/). It needs a Pro or Business zone. Without Spectrum Enterprise, a zone gets one Worker-origin app on one port.
+The `AI` binding always calls Workers AI remotely, so prompts cost a little, even in local dev.
+
+## Prove it
+
+With `npm run dev` running:
+
+```sh
+npm run proof
+```
+
+This opens one TCP peer and one WebSocket peer on a new session. It runs 10 checks:
+
+- a turn in each direction
+- a reconnect with replay on each side
+- history order
+
+It then writes `receipts/proof-<date>.md` and `status.json`. It exits non-zero if any check fails.
+
+## Protocol
+
+The protocol is newline-delimited JSON, and both doors use the same frames. On TCP:
+
+1. Send the token on the first line.
+2. Send the session name (`[a-z0-9-]{1,63}`) on the second line.
+
+The browser connects to `/ws/<session>?token=…` instead.
+
+| Command | Reply |
+|---|---|
+| `{"type":"prompt","message":"..."}` | `response`, then `busy` and `entry` frames to every peer, then `agent_settled` |
+| `{"type":"get_messages","id":"1"}` | `response` with every entry |
+| `{"type":"replay","after":15,"id":"2"}` | `response` with entries after id 15 |
+| `{"type":"abort"}` | stops the current turn |
+
+Server frames: `ready`, `peers` (`{tcp, web}` counts), `entry` (`{id, kind, text, via?}`), `busy` (`{via}`), `agent_settled`, `response` and `refused`. Types are in [`src/protocol.ts`](src/protocol.ts).
+
+## Layout
+
+| Path | What |
+|---|---|
+| `src/index.ts` | Worker. `connect()` checks the token and session, then pipes to the Durable Object. `fetch()` serves `/ws/:session` and the static client. |
+| `src/agent.ts` | `PiSession` Durable Object. Holds the harness and the peer set, and broadcasts entries. |
+| `src/protocol.ts` | Shared Effect Schema types for commands and frames. |
+| `client/` | Foldkit + Tailwind page. Built into `public/` by `npm run build`. |
+| `bin/pi-tcp.mjs` | Terminal client. |
+| `scripts/proof.mjs` | End-to-end proof that writes a receipt. |
 
 ## What this does not do
 
-- **No TLS.** The token and prompts cross the network in plain text. Spectrum without Enterprise can't terminate TLS for a Worker origin, and Workers can't call `startTls()` on inbound sockets. Use it for demos, or wrap it in your own TLS.
-- **No streaming tokens.** You get each entry after the turn settles.
-- **No shell or file tools.** The agent has only the model. For a real Linux box, refer to `examples/container/`.
-- **One shared token.** Anyone with the token can open any session.
-
-## Proof
-
-- Local: [receipts/local-2026-11-22.md](receipts/local-2026-11-22.md). It shows a refused bad token, a prompt, a reconnect that remembers the earlier turn, replay after a cursor, and session isolation.
-- Production through Spectrum is **not verified yet**. My zones are on the Free plan.
-
-## examples/container
-
-The same idea with a Container behind the Durable Object. socat runs the stock `pi --mode rpc`. The Durable Object to Container hop worked in production: a `get_state` round trip took 750–2,000 ms. In local `wrangler dev` on macOS arm64, the same hop failed with `Network connection lost`.
-
-## License
+- **No TLS.** The token and prompts cross the network in plain text.
+- **No streaming tokens.** Peers get each entry after it is written.
+- **No tools.** The agent has only the model.
+- **No public endpoint.** The Worker is deployed with `workers_dev` off. Public TCP needs a Spectrum app on a Pro zone.
 
 MIT

@@ -1,14 +1,20 @@
+import { SESSION_NAME_PATTERN } from "./protocol";
+
+const encoder = new TextEncoder();
+
 export function sameSecret(given: string, expected: string): boolean {
-	const a = new TextEncoder().encode(given);
-	const b = new TextEncoder().encode(expected);
-	if (!expected || a.length !== b.length) return false;
+	const left = encoder.encode(given);
+	const right = encoder.encode(expected);
+	if (expected.length === 0 || left.length !== right.length) {
+		return false;
+	}
 	let difference = 0;
-	for (let index = 0; index < a.length; index++) difference |= a[index] ^ b[index];
+	for (const [index, byte] of left.entries()) {
+		difference |= byte ^ (right[index] ?? 0);
+	}
 	return difference === 0;
 }
 
-const SESSION_NAME = /^[a-z0-9][a-z0-9-]{0,62}$/;
-
 export function validSessionName(name: string): boolean {
-	return SESSION_NAME.test(name);
+	return SESSION_NAME_PATTERN.test(name);
 }

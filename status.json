@@ -1,0 +1,60 @@
+{
+	"claim": "One Pi Durable session takes turns from raw TCP and from a browser at the same time; each side sees the other's turns; a reconnect on either side loses no turns.",
+	"state": "proven",
+	"scope": "local wrangler dev, Workers AI binding (remote)",
+	"checkedAt": "2026-11-22T13:41:24.746Z",
+	"session": "proof-mwrvxz0q",
+	"receipt": "receipts/proof-2026-11-22.md",
+	"checks": [
+		{
+			"name": "browser socket with a bad token is refused",
+			"passed": true,
+			"detail": "handshake rejected"
+		},
+		{
+			"name": "both transports join one session",
+			"passed": true,
+			"detail": "1 tcp, 1 web"
+		},
+		{
+			"name": "browser sees a turn asked over TCP",
+			"passed": true,
+			"detail": "entry #7 via tcp"
+		},
+		{
+			"name": "browser sees the reply to the TCP turn",
+			"passed": true,
+			"detail": "\"ack tcp\""
+		},
+		{
+			"name": "TCP sees a turn asked from the browser",
+			"passed": true,
+			"detail": "entry #12 via web"
+		},
+		{
+			"name": "TCP sees the reply to the browser turn",
+			"passed": true,
+			"detail": "\"ack web\""
+		},
+		{
+			"name": "TCP reconnect replays the turn it missed",
+			"passed": true,
+			"detail": "2 entries after #15"
+		},
+		{
+			"name": "browser reconnect replays the turn it missed",
+			"passed": true,
+			"detail": "2 entries after #19"
+		},
+		{
+			"name": "history is ordered with no duplicates",
+			"passed": true,
+			"detail": "8 entries"
+		},
+		{
+			"name": "history holds all four user turns",
+			"passed": true,
+			"detail": "tcp,web,web,tcp"
+		}
+	]
+}

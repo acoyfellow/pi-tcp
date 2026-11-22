@@ -1,3 +1,4 @@
+import { Schema } from 'effect';
 import { createProvider } from '@earendil-works/pi-ai/models';
 import type { Provider } from '@earendil-works/pi-ai/models';
 import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy';
@@ -19,16 +20,23 @@ const bindingModel = {
   cost: { input: 0.3, output: 1.2, cacheRead: 0.006, cacheWrite: 0 },
 };
 
+const ChatRequest = Schema.Record(Schema.String, Schema.Json);
+const decodeChatRequest = Schema.decodeUnknownSync(ChatRequest);
+
+function isResponse(value: unknown): value is Response {
+  return typeof value === 'object' && value !== null && 'status' in value && 'headers' in value && 'body' in value;
+}
+
 const bindingFetch =
   (ai: Ai): typeof fetch =>
   async (input, init) => {
     const request = new Request(input, init);
-    const body = (await request.json()) as Record<string, unknown>;
-    const { model, ...inputs } = body;
-    const response = (await ai.run(String(model) as keyof AiModels, inputs as never, {
-      returnRawResponse: true,
-    } as never)) as unknown as Response;
-
+    const { model, ...inputs } = decodeChatRequest(await request.json());
+    const modelId: string = typeof model === 'string' ? model : MODEL_ID;
+    const response: unknown = await ai.run(modelId, inputs, { returnRawResponse: true });
+    if (!isResponse(response)) {
+      throw new TypeError('Workers AI binding did not return a raw Response');
+    }
     return response;
   };
 
