@@ -1,0 +1,28 @@
+{
+  "name": "pi-tcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "wrangler dev",
+    "check": "wrangler types && tsc",
+    "deploy": "wrangler deploy",
+    "postinstall": "wrangler types"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "cf": "^1.0.0-rc.2",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.166.0"
+  },
+  "dependencies": {
+    "@cloudflare/containers": "^0.3.7",
+    "@earendil-works/chord": "^1.6.0",
+    "@earendil-works/pi-ai": "^1.6.0",
+    "@earendil-works/pi-durable": "^1.6.0"
+  },
+  "private": "true"
+}
