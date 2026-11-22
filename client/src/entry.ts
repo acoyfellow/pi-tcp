@@ -9,14 +9,14 @@ import { view } from "./view";
 
 const params = new URLSearchParams(globalThis.location.search);
 
-const initialLink: Link = params.has("token") ? "connecting" : "closed";
+const initialLink: Link = "connecting";
 
 const application = Runtime.makeElement<Model, Message, never, PiSocketService>({
 	Model,
 	init: () => ({
 		model: {
-			session: params.get("session") ?? "demo",
-			token: params.get("token") ?? "",
+			session: params.get("session") ?? `demo-${Math.random().toString(36).slice(2, 6)}`,
+			token: params.get("token") ?? "dev-token",
 			draft: "",
 			entries: [],
 			link: initialLink,
