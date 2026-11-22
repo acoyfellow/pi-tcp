@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>terminal</title>
+<style>
+	html { background: #0b0b0c; height: 100%; }
+	body { margin: 0; background: #0b0b0c; color: #e4e4e7; font: 15px/1.5 ui-monospace, Menlo, monospace; height: 100vh; display: flex; flex-direction: column; }
+	.bar { padding: 10px 14px; background: #18181b; color: #a1a1aa; font: 13px system-ui; display: flex; gap: 8px; align-items: center; }
+	.dot { width: 12px; height: 12px; border-radius: 50%; }
+	#out { padding: 18px; white-space: pre-wrap; word-break: break-all; flex: 1; overflow: hidden; }
+	.prompt { color: #4ade80; }
+	.typed { color: #fafafa; }
+	.frame { color: #71717a; }
+	.tcp { color: #fb923c; }
+	.web { color: #38bdf8; }
+	.agent { color: #fafafa; font-weight: 700; }
+</style>
+<div class="bar">
+	<span class="dot" style="background: #ef4444"></span><span class="dot" style="background: #eab308"></span><span class="dot" style="background: #22c55e"></span>&nbsp; terminal · raw TCP
+</div>
+<div id="out"></div>
+<script type="module" src="/terminal.js"></script>

@@ -12,7 +12,8 @@
     "dev:client": "vite --config client/vite.config.ts",
     "lint": "oxlint .",
     "proof": "node scripts/proof.mjs",
-    "a11y": "node scripts/a11y.mjs"
+    "a11y": "node scripts/a11y.mjs",
+		"record-demo": "node scripts/record-demo.mjs"
   },
   "keywords": [],
   "author": "",

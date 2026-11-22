@@ -2,6 +2,10 @@
 
 One durable Pi session with two doors: raw TCP and a web page.
 
+![A terminal asks "What is 2+2?" over nc and gets 4. The browser then asks "and times 3?" and gets 12. Both sides show every turn.](media/demo.gif)
+
+Left: `nc` to port 7000. Right: the web page. One agent, one memory. [MP4](media/demo.mp4) · 14 s · recorded live with `npm run record-demo` (needs `npm run dev`).
+
 ```
 nc ─────────▶ Worker connect() ─┐
                                 ├─▶ PiSession Durable Object ─▶ Pi Durable harness (SQLite)
@@ -10,7 +14,9 @@ browser ─ws─▶ Worker fetch() ───┘         fans each new entry out 
 
 Ask from `nc` and the turn shows up in the browser, tagged `nc`. Ask from the browser and `nc` prints it. Drop either side, reconnect, send `replay`, and you get the turns you missed.
 
-This is a **local proof** of [inbound TCP for Workers](https://developers.cloudflare.com/changelog/post/2026-11-19-inbound-tcp/) (public beta) and [`@earendil-works/pi-durable`](https://www.npmjs.com/package/@earendil-works/pi-durable). It is not a product. It has one shared token, no TLS and no accounts.
+This is a **proof** of [inbound TCP for Workers](https://developers.cloudflare.com/changelog/post/2026-11-19-inbound-tcp/) (public beta) and [`@earendil-works/pi-durable`](https://www.npmjs.com/package/@earendil-works/pi-durable). It is not a product. It has one shared token, no TLS and no accounts.
+
+It also runs in production: a Spectrum app with a Worker origin sends `tcp/7000` on a Cloudflare zone to this Worker, and a prompt over the public internet was answered in 1.2 s. The public endpoint needs the token; its web page sits behind Cloudflare Access.
 
 ## Status
 
