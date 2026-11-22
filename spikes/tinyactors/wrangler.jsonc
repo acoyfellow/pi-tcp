@@ -1,0 +1,4 @@
+{ "name": "pi-tcp-tinyactors-spike", "workers_dev": false, "preview_urls": false, "main": "worker.ts", "compatibility_date": "2026-11-01", "compatibility_flags": ["nodejs_compat"], "define": { "import.meta.url": "\"file:///worker.js\"" },
+  "rules": [{ "type": "Text", "globs": ["**/*.scxml"] }, { "type": "CompiledWasm", "globs": ["**/*.wasm"] }],
+  "durable_objects": { "bindings": [{ "name": "ROOM", "class_name": "Room" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }] }

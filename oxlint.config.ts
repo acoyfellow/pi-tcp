@@ -3,5 +3,5 @@ import { defineConfig } from 'oxlint';
 
 export default defineConfig({
 	...cloudflare,
-	ignorePatterns: [...(cloudflare.ignorePatterns ?? []), 'worker-configuration.d.ts', 'examples/**'],
+	ignorePatterns: [...(cloudflare.ignorePatterns ?? []), 'worker-configuration.d.ts', 'examples/**', 'spikes/**'],
 });

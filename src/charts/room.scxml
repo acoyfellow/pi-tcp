@@ -1,0 +1,46 @@
+<scxml xmlns="http://www.w3.org/2005/07/scxml" version="1.0" datamodel="ecmascript" name="room" initial="open">
+  <datamodel>
+    <data id="turns" expr="0"/>
+    <data id="maxTurns" expr="20"/>
+    <data id="speaker" expr="''"/>
+  </datamodel>
+
+  <state id="open">
+    <onentry>
+      <send id="idle" event="idle" delay="120s"/>
+    </onentry>
+
+    <transition event="close" target="closed"/>
+    <transition event="idle" target="closed"/>
+
+    <transition event="post" cond="turns &gt;= maxTurns" target="closed"/>
+
+    <transition event="post" cond="!_event.data.human &amp;&amp; speaker !== '' &amp;&amp; _event.data.from !== speaker">
+      <send type="room:bus" event="rejected">
+        <param name="from" expr="_event.data.from"/>
+        <param name="reason" expr="'not your turn'"/>
+      </send>
+    </transition>
+
+    <transition event="post">
+      <assign location="turns" expr="turns + 1"/>
+      <assign location="speaker" expr="_event.data.next || ''"/>
+      <cancel sendid="idle"/>
+      <send id="idle" event="idle" delay="120s"/>
+      <send type="room:bus" event="turn">
+        <param name="from" expr="_event.data.from"/>
+        <param name="text" expr="_event.data.text"/>
+        <param name="next" expr="speaker"/>
+        <param name="turn" expr="turns"/>
+      </send>
+    </transition>
+  </state>
+
+  <final id="closed">
+    <onentry>
+      <send type="room:bus" event="closed">
+        <param name="turns" expr="turns"/>
+      </send>
+    </onentry>
+  </final>
+</scxml>

@@ -21,3 +21,11 @@ Customer 0 notes from building pi-tcp on the inbound TCP beta (changelog 2026-11
 - **Workers types give `Socket.readable` as `ReadableStream<any>`.** Every caller has to narrow it. `src/lines.ts` `byteReader` does this once.
 - **`Ai.run` has no overload for a raw Response with a model name that is not in the generated list.** `@cf/deepseek-ai/deepseek-v4.1-flash-1017` is not in `AiModelList` yet. The code uses the fallback overload and narrows the result.
 - **The cmux browser `eval` runs in an isolated world.** Page globals and `console` output can't be seen. Use Playwright with system Chrome to debug.
+
+## tinyactors 0.4.0 in a Durable Object (2026-11-22)
+
+- **Works.** `@tinyactors/wasm` runs `src/charts/room.scxml` inside a Durable Object under `wrangler dev`. It sent 27 posts to a fresh room: 20 turns delivered, 1 out-of-turn post rejected, then `closed {"turns":20}`. The run took 20 ms with the simulated clock and made no model calls. Reproduce with `spikes/tinyactors/`.
+- **Use `datamodel: "quickjs"` on the Host, not on the chart.** Workers forbid `eval`, so the native datamodel can't run. The chart keeps `datamodel="ecmascript"`. Putting `quickjs` in the chart fails with `UnsupportedError: a chart's datamodel is not in this host`. Putting it in `config` fails with `InvalidError ... path: datamodel`.
+- **Import `@tinyactors/wasm/init` and pass the wasm module.** The default entry reads `new URL('../tinyactors.wasm', import.meta.url)` when it loads, which breaks workerd startup with `Invalid URL string`. Fix: set wrangler `define` for `import.meta.url`, add a `CompiledWasm` rule, and call `init(wasm)`.
+- **Size:** 1366 KiB upload, 512 KiB gzip with the quickjs engine included.
+- **Not yet proven:** the actor surviving Durable Object eviction (needs a `Store` on DO storage), and real agents in the room.
