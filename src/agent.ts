@@ -15,6 +15,8 @@ const HEARTBEAT_MS = 30_000;
 const PAGE_SIZE = 100;
 const MAX_PROMPT_CHARS = 4000;
 const BROADCAST_KEY = "lastBroadcast";
+const PROMPT_COUNT_KEY = "promptCount";
+const MAX_PROMPTS_PER_SESSION = 50;
 
 const decodeCommand = Schema.decodeUnknownOption(ClientCommandJson);
 
@@ -181,6 +183,11 @@ export class PiSession extends DurableObject<Env> {
 				if (message.length === 0) {
 					return respond({ success: false, error: "message is required" });
 				}
+				const promptCount = this.ctx.storage.kv.get<number>(PROMPT_COUNT_KEY) ?? 0;
+				if (promptCount >= MAX_PROMPTS_PER_SESSION) {
+					return respond({ success: false, error: `session limit of ${MAX_PROMPTS_PER_SESSION} prompts reached; start a new session` });
+				}
+				this.ctx.storage.kv.put(PROMPT_COUNT_KEY, promptCount + 1);
 				const { harness, conversation } = await this.open();
 				await this.arm({ ...harness.wake(), active: true });
 				const submission = await conversation.submit({ type: "input", content: message, whenBusy: "followUp" }, BACKGROUND_CONTEXT);
