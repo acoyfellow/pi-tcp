@@ -1,6 +1,8 @@
 import type { Update } from "foldkit";
 import { modifyFields } from "foldkit/struct";
 import type { ServerFrame, SessionEntry } from "../../src/protocol";
+import { CopyText, ResetCopyLater, ScrollToLatest } from "./clipboard";
+import { ncCommand } from "./command-line";
 import { Message } from "./message";
 import type { Model } from "./model";
 import { LoadHistory, SendPrompt } from "./socket";
@@ -62,7 +64,15 @@ export const update = (model: Model, message: Message): Return =>
 					? modifyFields(model, { link: () => "connecting", epoch: (epoch) => epoch + 1 })
 					: modifyFields(model, { failures: (failures) => failures + 1, epoch: (epoch) => epoch + 1 }),
 			),
-		ReceivedFrame: ({ frame }) => only(applyFrame(model, frame)),
+		ReceivedFrame: ({ frame }) => {
+			const next = applyFrame(model, frame);
+			return next.entries.length === model.entries.length ? only(next) : { model: next, commands: [ScrollToLatest({})] };
+		},
+		ScrolledToLatest: () => only(model),
 		SentPrompt: () => only(model),
+		ClickedCopy: () => ({ model, commands: [CopyText({ text: ncCommand(model) })] }),
+		CopiedCommand: () => ({ model: modifyFields(model, { copy: () => "copied" }), commands: [ResetCopyLater({})] }),
+		FailedCopy: () => ({ model: modifyFields(model, { copy: () => "failed" }), commands: [ResetCopyLater({})] }),
+		ResetCopy: () => only(modifyFields(model, { copy: () => "idle" })),
 		FailedSend: () => only(modifyFields(model, { link: () => "connecting", epoch: (epoch) => epoch + 1 })),
 	});

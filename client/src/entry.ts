@@ -26,6 +26,7 @@ const application = Runtime.makeElement<Model, Message, never, PiSocketService>(
 			tcpPeers: 0,
 			webPeers: 0,
 			tcpHost: params.get("tcp") ?? "127.0.0.1 7000",
+			copy: "idle",
 		},
 		commands: [],
 	}),

@@ -14,8 +14,16 @@
 }
 
 html {
-	background: #fafaf9;
-	color: #18181b;
+	color-scheme: light dark;
+	background: var(--color-zinc-50);
+	color: var(--color-zinc-900);
+}
+
+@media (prefers-color-scheme: dark) {
+	html {
+		background: var(--color-zinc-950);
+		color: var(--color-zinc-100);
+	}
 }
 
 input,

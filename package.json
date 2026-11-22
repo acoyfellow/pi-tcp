@@ -11,7 +11,8 @@
     "build": "vite build --config client/vite.config.ts",
     "dev:client": "vite --config client/vite.config.ts",
     "lint": "oxlint .",
-    "proof": "node scripts/proof.mjs"
+    "proof": "node scripts/proof.mjs",
+    "a11y": "node scripts/a11y.mjs"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,9 @@
     "@cloudflare/oxlint-config": "^0.1.0",
     "@foldkit/vite-plugin": "^0.29.1",
     "@tailwindcss/vite": "^4.3.5",
+    "axe-core": "^4.14.1",
     "oxlint": "^1.94.0",
+    "playwright-core": "^1.65.1",
     "tailwindcss": "^4.3.5",
     "tsrs": "^0.25.0-ts7.1.0-beta",
     "typescript": "^7.0.2",

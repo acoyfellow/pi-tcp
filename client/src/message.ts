@@ -13,6 +13,11 @@ export const Message = defineMessageUnion({
 	ReceivedFrame: { frame: ServerFrame },
 	SentPrompt: {},
 	FailedSend: {},
+	ClickedCopy: {},
+	CopiedCommand: {},
+	FailedCopy: {},
+	ResetCopy: {},
+	ScrolledToLatest: {},
 });
 
 export type Message = typeof Message.Type;
