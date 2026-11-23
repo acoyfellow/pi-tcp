@@ -16,7 +16,7 @@ Ask from `nc` and the turn shows up in the browser, tagged `nc`. Ask from the br
 
 This is a **proof** of [inbound TCP for Workers](https://developers.cloudflare.com/changelog/post/2026-11-19-inbound-tcp/) (public beta) and [`@earendil-works/pi-durable`](https://www.npmjs.com/package/@earendil-works/pi-durable). It is not a product. It has one shared token, no TLS and no accounts.
 
-It also runs in production: a Spectrum app with a Worker origin sends `tcp/7000` on a Cloudflare zone to this Worker, and a prompt over the public internet was answered in 1.2 s. The public endpoint needs the token; its web page sits behind Cloudflare Access.
+It also runs in production. A Spectrum app with a Worker origin sends `tcp/7000` on an Enterprise zone to this Worker. The public endpoint needs the token, and its web page sits behind Cloudflare Access. Refer to [Status](#status) for what is proven where.
 
 ## Status
 
@@ -24,7 +24,12 @@ It also runs in production: a Spectrum app with a Worker origin sends `tcp/7000`
 
 > One Pi Durable session takes turns from raw TCP and from a browser at the same time; each side sees the other's turns; a reconnect on either side loses no turns.
 
-**Proven locally** (`wrangler dev`). **Not proven** over the public internet, because that needs Spectrum on a paid zone. Refer to [`receipts/findings.md`](receipts/findings.md).
+| Where | What | Receipt |
+|---|---|---|
+| Local, `wrangler dev` | The full claim: TCP and browser, both directions, reconnect and replay | `npm run proof` → [`status.json`](status.json) |
+| Public internet, Spectrum | TCP only: a bad token is refused, a prompt is answered in about 1 s, a second TCP peer sees the turn | `npm run proof:public` → [`receipts/proof-public-2026-11-23.md`](receipts/proof-public-2026-11-23.md) |
+
+The browser half is not proven over the public internet: its page is behind Cloudflare Access. Refer to [`receipts/findings.md`](receipts/findings.md).
 
 ## Run it
 
@@ -97,6 +102,6 @@ Server frames: `ready`, `peers` (`{tcp, web}` counts), `entry` (`{id, kind, text
 - **No TLS.** The token and prompts cross the network in plain text.
 - **No streaming tokens.** Peers get each entry after it is written.
 - **No tools.** The agent has only the model.
-- **No public endpoint.** The Worker is deployed with `workers_dev` off. Public TCP needs a Spectrum app on a Pro zone.
+- **No open web endpoint.** `workers_dev` and preview URLs are off. Public TCP goes through a Spectrum app, which needs a Pro, Business or Enterprise zone; the web page is behind Cloudflare Access.
 
 MIT

@@ -6,7 +6,8 @@ Customer 0 notes from building pi-tcp on the inbound TCP beta (changelog 2026-11
 
 - **Local dev works for Worker `connect()`.** `wrangler dev` 4.166.0 listens on the configured port, and `nc 127.0.0.1 7000` reaches the handler. Worker to Durable Object `connect()` works locally too.
 - **Local Durable Object to Container `getTcpPort()` fails on macOS arm64.** The error is `Network connection lost`. The same hop works in production, at 750–2000 ms per connect. We removed the container variant from this repo for that reason. To reproduce, call `getTcpPort(port).connect()` from a Durable Object to a container under `wrangler dev`.
-- **Public TCP needs Spectrum on a Pro or Business zone.** Both test zones are on the Free plan. The Spectrum API returned 403 on one and "Zone not found" on the other, where the login could not reach the zone's account. Nothing in this repo is proven over the public internet yet.
+- **Public TCP needs Spectrum on a Pro, Business or Enterprise zone.** Our two Free zones failed: the Spectrum API returned 403 on one and "Zone not found" on the other.
+- **Spectrum with a Worker origin works on an Enterprise zone.** The dashboard offers an application type "Workers (tcp)" with an origin Worker picker. We created `pi-tcp.<zone>:7000` → Worker `pi-tcp` there. A prompt over the public internet was answered in about 1 s, and a bad token was refused. Receipt: [`proof-public-2026-11-23.md`](proof-public-2026-11-23.md). The browser half is not proven publicly, because Access covers the page.
 - **No TLS for Worker origins without Spectrum Enterprise, and no `startTls()` on inbound sockets.** The token crosses the network in plain text, so this stays a demo.
 - **Port 7000 conflicts.** On macOS, AirPlay Receiver and other local dev servers can hold port 7000 or send stray HTTP to it. The Worker treats stray HTTP as a bad token.
 
@@ -28,4 +29,4 @@ Customer 0 notes from building pi-tcp on the inbound TCP beta (changelog 2026-11
 - **Use `datamodel: "quickjs"` on the Host, not on the chart.** Workers forbid `eval`, so the native datamodel can't run. The chart keeps `datamodel="ecmascript"`. Putting `quickjs` in the chart fails with `UnsupportedError: a chart's datamodel is not in this host`. Putting it in `config` fails with `InvalidError ... path: datamodel`.
 - **Import `@tinyactors/wasm/init` and pass the wasm module.** The default entry reads `new URL('../tinyactors.wasm', import.meta.url)` when it loads, which breaks workerd startup with `Invalid URL string`. Fix: set wrangler `define` for `import.meta.url`, add a `CompiledWasm` rule, and call `init(wasm)`.
 - **Size:** 1366 KiB upload, 512 KiB gzip with the quickjs engine included.
-- **Not yet proven:** the actor surviving Durable Object eviction (needs a `Store` on DO storage), and real agents in the room.
+- **Not yet proven:** the actor surviving Durable Object eviction (needs a `Store` on DO storage), and real agents in the room. This is about tinyactors only; public TCP has its own receipt.
